@@ -5,7 +5,7 @@ class CbThermometer(CbBase):
     """
     def __init__(self, env, name, kind, period, context, events):
 
-        super().__init__(self,env,context,events, kind)
+        super().__init__(env,context,events, kind)
 
         self.name = name
 
