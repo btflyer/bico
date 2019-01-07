@@ -147,6 +147,13 @@ class ContainedSpace(object):
                       (heat_source.id,heat_source.output))
                 self.duty_process.interrupt()
 
+        def heat_source_output_changed(self,heat_source):
+            """React to change in output of heat_source"""
+            if heat_source in self.heat_sources:
+                print('** Source %s changed output to %d' %
+                      (heat_source.id,heat_source.output))
+                self.duty_process.interrupt()
+
 
 class HeatSource(object):
     """A simple heat source that has a constant heat output"""
@@ -167,6 +174,9 @@ def heat_source_activity(env,space,actions):
             space.add_heat_source(action[2])
         elif action[1] is 'remove':
             space.remove_heat_source(action[2])
+        elif action[1] is 'change':
+            action[2].output = action[3]
+            space.heat_source_output_changed(action[2])
         else:
             raise RuntimeError('heat_source_activity(): Unknown action type: %s'
                                % action[1])           
@@ -236,6 +246,24 @@ def test_case_4(env):
     # End of run
     print('#### End of test_case_4 after %d seconds ####' % SIM_TIME)
 
+def test_case_5(env):
+    """One heat source introduced after 200 seconds, initial room temp is 290K
+    with low eq at 288K, heat source output doubled after 400 seconds
+    """
+    hs_1 = HeatSource('1',300)
+    heat_source_actions = [
+        (200,'add',hs_1),
+        (400,'change',hs_1,600),
+        (400,'change',hs_1,200)
+    ]                
+    room = ContainedSpace(env,288,290,(5*5*3))
+    env.process(heat_source_activity(env,room,heat_source_actions))
+    # Execute!
+    print('==== Start of test_case_5 ====')
+    env.run(until=SIM_TIME)
+    # End of run
+    print('#### End of test_case_5 after %d seconds ####' % SIM_TIME)
+
 ## run test cases
 env = simpy.Environment()
 test_case_1(env)
@@ -248,3 +276,6 @@ test_case_3(env)
 
 env = simpy.Environment()
 test_case_4(env)
+
+env = simpy.Environment()
+test_case_5(env)
