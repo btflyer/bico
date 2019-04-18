@@ -3,25 +3,25 @@ from cb_base import CbBase
 class CbHeater(CbBase):
     """A computational bacterium producing heat a.k.a heater
     """
-    def __init__(self, env, name, context, event_stream, event_kinds, period, output):
+    def __init__(self, env, id, context, event_stream, event_kinds, period, output, heat_on=False):
 
-        super().__init__(env, name, context, event_stream, event_kinds, period)
+        super().__init__(env, id, context, event_stream, event_kinds, period)
 
         #Heater properties
         self.heat_output = output
-        self.heat_on = False
+        self.heat_on = heat_on
         self.output_unit = "watts"
 
     def sustenance_activity(self):
         if (self.heat_on):
-            print ("{} at {} producing heat: {} {}".format(self.name,self.env.now,self.heat_output,self.output_unit))
+            print ("{} at {} producing heat: {} {}".format(self.id,self.env.now,self.heat_output,self.output_unit))
         else:
-            print ("{} at {} not producing heat".format(self.name,self.env.now))
+            print ("{} at {} not producing heat".format(self.id,self.env.now))
 
     def on_interrupt_activity(self):
-        print('{} at {} interrupted with {}'.format(self.name,self.env.now,self.event))
+        print('{} at {} interrupted with {}'.format(self.id,self.env.now,self.event))
         if self.event[0] == 'heat_on' and not self.heat_on:
             self.heat_on = True
         elif self.event[0] == 'heat_off' and self.heat_on:
             self.heat_on = False
-    
+    # Add method to change output, maybe just toggle on and off -> issue event to self

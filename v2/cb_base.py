@@ -11,9 +11,9 @@ class CbBase(object):
     and pre-empt its other on-going activity (in this case sleeping).
 
     """
-    def __init__(self, env, name, context, event_stream, event_kinds, period):
+    def __init__(self, env, id, context, event_stream, event_kinds, period):
         self.env = env
-        self.name = name
+        self.id = id
         self.ev_kinds = event_kinds
         self.context = context
         self.events = event_stream
@@ -53,7 +53,7 @@ class CbBase(object):
 
     def listening(self):
         """Pick up interesting events and interrupt basic activity"""
-        filter = lambda event: ((event[1] is None or event[1] == self.name)
+        filter = lambda event: ((event[1] is None or event[1] == self.id)
                                 and (event[0] in self.ev_kinds))
         while True:
             self.event = yield self.events.get(filter)
