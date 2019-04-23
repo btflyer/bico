@@ -11,6 +11,10 @@ class CbHeater(CbBase):
         self.heat_output = output
         self.heat_on = heat_on
         self.output_unit = "watts"
+        self.listener_callback = None
+        
+    def set_listener_callback(self,callable):
+        self.listener_callback = callable
 
     def sustenance_activity(self):
         if (self.heat_on):
@@ -20,8 +24,14 @@ class CbHeater(CbBase):
 
     def on_interrupt_activity(self):
         print('{} at {} interrupted with {}'.format(self.id,self.env.now,self.event))
+        changed = False
         if self.event[0] == 'heat_on' and not self.heat_on:
             self.heat_on = True
+            changed = True
         elif self.event[0] == 'heat_off' and self.heat_on:
             self.heat_on = False
-    # Add method to change output, maybe just toggle on and off -> issue event to self
+            changed = True
+        if self.listener_callback and changed:
+            self.listener_callback(self)
+    
+    

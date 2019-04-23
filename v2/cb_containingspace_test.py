@@ -4,30 +4,36 @@ from cb_containingspace import ContainingSpace
 
 import simpy
 
-SIM_TIME = 2000  # seconds (10 minutes)
-
-
-def heat_source_activity(env,space,actions):
+SIM_TIME = 2300  # seconds (10 minutes)
+    
+def heat_source_activity(env,space,event_queue,actions):
     for action in actions:
         yield env.timeout(action[0])
         print('>> Heat source action %s' % action[1])
         if action[1] is 'add':
-            action[2].heat_on = True
+            #action[2].heat_on = True
             space.add_heat_source(action[2])
+            yield event_queue.put(('heat_on',action[2].id,env.now))
         elif action[1] is 'remove':
             space.remove_heat_source(action[2])
-            action[2].heat_on = False
+            #action[2].heat_on = False #not strictly necessary, could send an event
+            yield event_queue.put(('heat_off',action[2].id,env.now))
         elif action[1] is 'change':
-            if action[2].heat_on:
-                action[2].heat_on = False  #should send an event to heater!
-            else:
-                action[2].heat_on = True
-            # action[2].output = action[3] #can only turn it on and off
-            space.heat_source_output_changed(action[2]) #heater should issue an event for this
-                                                        #or maybe it just emits heat...
+            heat_event = 'heat_off' if action[2].heat_on else 'heat_on'
+            event = (heat_event,action[2].id,env.now)
+            print('>> Heat change event created %s, %s, %s' % event)
+            yield event_queue.put(event)
         else:
             raise RuntimeError('heat_source_activity(): Unknown action type: %s'
-                               % action[1])           
+                               % action[1])
+
+def temp_listener(events):
+        """Pick up interesting events and interrupt basic activity"""
+        filter = lambda event: (event[0]  == 'temp_measurement')
+        while True:
+            event = yield events.get(filter)
+            print('## Temp measurement: %.1f, %s, %s' % (event[1],event[2],event[3]))
+
 
 def test_case_1(env):
     """Complex test case: 3 heat sources introduced during the scenario and
@@ -47,7 +53,8 @@ def test_case_1(env):
         (810,'add',hs_3),
         (90,'remove',hs_1)
     ]                
-    env.process(heat_source_activity(env,room,heat_source_actions))
+    env.process(heat_source_activity(env,room,event_queue,heat_source_actions))
+    env.process(temp_listener(event_queue))
     # Execute!
     print('==== Start of test_case_1 ====')
     env.run(until=SIM_TIME)

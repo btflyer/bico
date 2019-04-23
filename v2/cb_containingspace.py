@@ -101,7 +101,8 @@ class ContainingSpace(object):
                 self.temperature = eq_target[0] #below lowest possible temp. 
 
         def current_heat_from_sources(self): #private
-            total_output = sum(s.heat_output for s in self.heat_sources)
+            #total_output = sum(s.heat_output for s in self.heat_sources)
+            total_output = sum(s.heat_output for s in self.heat_sources if s.heat_on)
             if total_output is None or total_output < 0:
                 total_output = 0
             return total_output
@@ -135,6 +136,7 @@ class ContainingSpace(object):
             """Add heat_source to active sources"""
             if not heat_source in self.heat_sources:
                 self.heat_sources.append(heat_source)
+                heat_source.set_listener_callback(self.heat_source_output_changed)
                 print('++ Added source %s with output %d' %
                       (heat_source.id,heat_source.heat_output))
                 self.duty_process.interrupt()
@@ -143,6 +145,7 @@ class ContainingSpace(object):
             """Remove heat_source from active sources"""
             if heat_source in self.heat_sources:
                 self.heat_sources.remove(heat_source)
+                heat_source.set_listener_callback(None)
                 print('-- Removed source %s with output %d' %
                       (heat_source.id,heat_source.heat_output))
                 self.duty_process.interrupt()

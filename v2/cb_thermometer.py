@@ -7,9 +7,7 @@ class CbThermometer(CbBase):
 
         super().__init__(env, id, context, event_stream, event_kinds, period)
 
-        #self.id = id
-
-        #Heater properties
+        #Thermometer properties
         self.last_temp_read = -1
 
 
@@ -18,6 +16,7 @@ class CbThermometer(CbBase):
         if self.context:
            self.last_temp_read = self.context.temperature 
         print ("{} at {} measuring heat: {:.1f}".format(self.id,self.env.now,self.last_temp_read))
+        self.events.put(('temp_measurement',self.last_temp_read,self.env.now,self.id))
 
     def on_interrupt_activity(self):
         print('{} at {} thermometer interrupted with {}'.format(self.id,self.env.now,self.event))
