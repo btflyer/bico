@@ -1,5 +1,7 @@
 import simpy
 
+#TO DO:
+# - make Cb's discoverable somehow
 class CbBase(object):
     """A computational bacterium performs its basic function in a
     continuous but periodic fashion (sleep, act).

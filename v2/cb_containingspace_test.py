@@ -4,9 +4,12 @@ from cb_containingspace import ContainingSpace
 
 import simpy
 
-SIM_TIME = 2300  # seconds (10 minutes)
+SIM_TIME = 1000  # seconds (10 minutes)
     
 def heat_source_activity(env,space,event_queue,actions):
+    """Perform actions in order by first waiting for the timeout and then
+    processing the action defined in each action
+    """
     for action in actions:
         yield env.timeout(action[0])
         print('>> Heat source action %s' % action[1])
@@ -28,7 +31,7 @@ def heat_source_activity(env,space,event_queue,actions):
                                % action[1])
 
 def temp_listener(events):
-        """Pick up interesting events and interrupt basic activity"""
+        """Pick up temp measurement events"""
         filter = lambda event: (event[0]  == 'temp_measurement')
         while True:
             event = yield events.get(filter)
@@ -61,6 +64,28 @@ def test_case_1(env):
     # End of run
     print('#### End of test_case_1 after %d seconds ####' % SIM_TIME)
 
+def test_case_2(env):
+    """Simple test case: 1 heat source introduced during the scenario and turned
+    on a little later. After reaching new equilibrium, it is turned off.
+    Initial room temp is 290K with 288K as the low equilibrium.
+    """
+    room = ContainingSpace(env,288,290,(5*5*3))
+    event_queue = simpy.FilterStore(env)
+    hs_1 = CbHeater(env,'heater1',room,event_queue,
+                    ['ping','heat_on','heat_off'],60,300)
+    tmeter1 = CbThermometer(env,'thermometer1',room,event_queue,['ping'],20)
+    heat_source_actions = [
+        (100,'add',hs_1),     # add and turn on
+        (300,'change',hs_1)   # turn off
+    ]                
+    env.process(heat_source_activity(env,room,event_queue,heat_source_actions))
+    env.process(temp_listener(event_queue))
+    # Execute!
+    print('==== Start of test_case_2 ====')
+    env.run(until=SIM_TIME)
+    # End of run
+    print('#### End of test_case_2 after %d seconds ####' % SIM_TIME)
+
 
 
 ## run tests
@@ -70,4 +95,5 @@ env = simpy.Environment()
 #heater1 = CbHeater(env,'heater1',None,event_queue,['ping','heat_on','heat_off'],10,25)
 #tmeter1 = CbThermometer(env,'temp1',None,event_queue,['ping'],10)
 #env.run(until=350)
-test_case_1(env)
+#test_case_1(env)
+test_case_2(env)

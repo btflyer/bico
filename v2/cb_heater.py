@@ -17,10 +17,11 @@ class CbHeater(CbBase):
         self.listener_callback = callable
 
     def sustenance_activity(self):
-        if (self.heat_on):
-            print ("{} at {} producing heat: {} {}".format(self.id,self.env.now,self.heat_output,self.output_unit))
-        else:
-            print ("{} at {} not producing heat".format(self.id,self.env.now))
+        pass  # nothing to do here
+##        if (self.heat_on):
+##            print ("{} at {} producing heat: {} {}".format(self.id,self.env.now,self.heat_output,self.output_unit))
+##        else:
+##            print ("{} at {} not producing heat".format(self.id,self.env.now))
 
     def on_interrupt_activity(self):
         print('{} at {} interrupted with {}'.format(self.id,self.env.now,self.event))

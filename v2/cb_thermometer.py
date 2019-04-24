@@ -15,7 +15,7 @@ class CbThermometer(CbBase):
     def sustenance_activity(self):
         if self.context:
            self.last_temp_read = self.context.temperature 
-        print ("{} at {} measuring heat: {:.1f}".format(self.id,self.env.now,self.last_temp_read))
+        #print ("{} at {} measuring heat: {:.1f}".format(self.id,self.env.now,self.last_temp_read))
         self.events.put(('temp_measurement',self.last_temp_read,self.env.now,self.id))
 
     def on_interrupt_activity(self):
